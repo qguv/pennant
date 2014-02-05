@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# vim:si:et:ts=4:sw=4
 
 import requests
 
