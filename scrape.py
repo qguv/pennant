@@ -11,8 +11,9 @@ payload = {
 }
 
 r = requests.post("https://courselist.wm.edu/courseinfo/searchresults", payload)
+response = r.text
+response = response.replace("\r", "\n")
 
 with open("results.html", 'w') as f:
-    response = r.text.replace("", "")
-    f.write(r.text)
+    f.write(response)
 
