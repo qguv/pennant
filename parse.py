@@ -6,77 +6,91 @@ import time
 from course import Course
 
 
-with open("results.html","r") as f:
-    text = f.read()
-    
-section_pattern = re.compile(r'<td.*>\s*<a[^>]*>([^<]+)</a>\s*</td>\s*' + r'<td[^>]*>([^<]+)</td>\s*' * 11)
-results = re.findall(section_pattern, text)
+with open("results.html", "r") as f:
+    htmlText = f.read()
 
-#testRes = results[1];
+crnPattern = r'<td.*>\s*<a[^>]*>([^<]+)</a>\s*</td>\s*'
+dataPattern = r'<td[^>]*>([^<]+)</td>\s*'
+fullPattern = re.compile(crnPattern + dataPattern * 11)
+results = re.findall(fullPattern, htmlText)
 
-opnMap = {"OPEN":True,"CLOSED":False}
-weekDays = {"M":"Monday","T":"Tuesday","W":"Wendsday","R":"Thursday","F":"Friday"}
-
+openMap = {
+    "OPEN": True,
+    "CLOSED": False
+}
+weekdayMap = {
+    "M": "Monday",
+    "T": "Tuesday",
+    "W": "Wednesday",
+    "R": "Thursday",
+    "F": "Friday",
+}
 
 masterCourses = []
 
+for result in results:
+    topn = openMap[result[11]]
+    tcrn = result[0]
 
-#for attr in testRes:
-    #print(attr)
-
-for testRes in results:
-    topn = opnMap[testRes[11]]
-    tcrn = testRes[0]
-
-    titleData = testRes[1].split(" ")
+    titleData = result[1].split(" ")
     tdepart = titleData[0]
     tlevel = titleData[1]
     tsection = titleData[2]
 
-    ttitle = testRes[3]
-    ttitle = ttitle.replace("&amp;","&")
+    ttitle = result[3]
+    ttitle = ttitle.replace("&amp;", "&")
 
-    tprof = testRes[4]
-    tcredit = testRes[5]
+    tprof = result[4]
+    tcredit = result[5]
 
     tattrs = set()
     tgers = set()
-    if testRes[2] != "":
-        attribs = testRes[2].split(", ")
+    if result[2] != "":
+        attribs = result[2].split(", ")
         for attrib in attribs:
             if "GE" in attrib:
                 tgers.add(attrib)
             else:
                 tattrs.add(attrib)
 
-    days = testRes[6]
+    days = result[6]
     tdays = set()
     if days != "":
         for d in days:
             if d in "MTWRF":
-                tdays.add(weekDays[d])
+                tdays.add(weekdayMap[d])
 
+    ttime = ("", "")
+    if result[7] != "" and '-' in result[7]:
+        ttimes = result[7].split("-")
+        starttime = time.strptime(ttimes[0], "%H%M")
+        endtime = time.strptime(ttimes[1], "%H%M")
+        ttime = (starttime, endtime)
 
-    ttime = ("","")
-    if testRes[7] != "" and '-' in testRes[7]:
-        ttimes = testRes[7].split("-")
-        starttime = time.strptime(ttimes[0],"%H%M")
-        endtime = time.strptime(ttimes[1],"%H%M")
-        ttime = (starttime,endtime)
+    tprojectede = int(result[8])
+    tcurrente = int(result[9])
+    tseats = int(result[10])
 
-    tprojectede = int(testRes[8])
-    tcurrente = int(testRes[9])
-    tseats = int(testRes[10])
-
-    someCourse = Course(isOpen=topn,crn=tcrn,department=tdepart,level=tlevel,section=tsection,title=ttitle,professor=tprof,creditHours=tcredit,attributes=tattrs,gers=tgers,days=tdays,times=ttime,projectedE=tprojectede,currentE=tcurrente,seats=tseats)
+    someCourse = Course(
+        isOpen=topn,
+        crn=tcrn,
+        department=tdepart,
+        level=tlevel,
+        section=tsection,
+        title=ttitle,
+        professor=tprof,
+        creditHours=tcredit,
+        attributes=tattrs,
+        gers=tgers,
+        days=tdays,
+        times=ttime,
+        projectedE=tprojectede,
+        currentE=tcurrente,
+        seats=tseats)
 
     masterCourses.append(someCourse)
 
 print()
 
-for i in range(len(masterCourses)):
-    print(masterCourses[i])
-
-#for result in results:
-    #for attr in result:
-        #print(attr)
+for courseEntry in masterCourses:
+    print(courseEntry)
