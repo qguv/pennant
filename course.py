@@ -22,16 +22,32 @@ class Course:
         self.projectedE = int(kwargs["projectedE"])
         self.currentE = int(kwargs["currentE"])
         self.seats = int(kwargs["seats"])
+        self.professorLast = self.professor.split(",")[0]
 
-    def __str__(self):
-        pattern = "{0}-{1}-{2}\t{3}\t    {4}\t{5}"
+    def oneline(self):
+        pattern = "{}: {} w/ Prof. {} ({} {}-{}, CRN {})"
         return pattern.format(
+            "OPEN" if self.isOpen else "CLOSED",
+            self.title,
+            self.professorLast,
             self.department,
             self.level,
             self.section,
+            self.crn,
+        )
+
+    def __str__(self):
+        pattern = "{} w/ Prof. {}\n"
+        pattern += "    {} ({} {}-{}, CRN {})\n"
+        return pattern.format(
             self.title,
-            self.professor,
-            str(self.isOpen))
+            self.professorLast,
+            "OPEN" if self.isOpen else "CLOSED",
+            self.department,
+            self.level,
+            self.section,
+            self.crn,
+        )
 
 
 if __name__ == "__main__":
@@ -52,4 +68,6 @@ if __name__ == "__main__":
         currentE=39,
         seats=1,
     )
+    print(dataStructures)
+    print(dataStructures)
     print(dataStructures)
