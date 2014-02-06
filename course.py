@@ -33,4 +33,23 @@ class Course:
             self.professor,
             str(self.isOpen))
 
-#dataStructures = Course(isOpen=True,crn=12345,department="CSCI",level="241",section=1,title="Data Structures",professor="R. Dickerson",creditHours="3",attributes={},gers={},days={"Monday","Wendsday"},times=(time(14,0),time(15,20)),projectedE=40,currentE=39,seats=1)
+
+if __name__ == "__main__":
+    dataStructures = Course(
+        isOpen=True,
+        crn=12345,
+        department="CSCI",
+        level="241",
+        section=1,
+        title="Data Structures",
+        professor="Dickerson, Robert F.",
+        creditHours="3",
+        attributes={},
+        gers={},
+        days={"Monday", "Wendsday"},
+        times=(time(14, 0), time(15, 20)),
+        projectedE=40,
+        currentE=39,
+        seats=1,
+    )
+    print(dataStructures)
