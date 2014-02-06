@@ -1,9 +1,16 @@
 pennant
 =======
 
-(A course list which doesn't suck.)
+_"A course list which doesn't suck."_
 
 A front-end for William and Mary's open course list system.
+
+## Warning
+Please don't call pb.scrapeCourselist() too often. W&M's [courselist][] website
+is very weak and the function puts quite a bit of strain on it. Don't get us in
+trouble; scrape no more than once every five minutes, and be sure to offset.
+
+[courselist]: https://courselist.wm.edu/
 
 ## Example usage
 
