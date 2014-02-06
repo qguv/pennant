@@ -99,4 +99,4 @@ for result in results:
 print()
 
 for courseEntry in masterCourses:
-    print(courseEntry)
+    print(courseEntry.fullinfo())

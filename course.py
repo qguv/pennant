@@ -49,6 +49,23 @@ class Course:
             self.crn,
         )
 
+    def fullinfo(self):
+        pattern = "{} w/ Prof. {}\n"
+        pattern += "    {} ({} {}-{}, CRN {})\n"
+        pattern += "    {} credit{}{}{}\n"
+        return pattern.format(
+            self.title,
+            self.professorLast,
+            "OPEN" if self.isOpen else "CLOSED",
+            self.department,
+            self.level,
+            self.section,
+            self.crn,
+            self.creditHours,
+            "s" if self.creditHours != '1' else "",
+            ": " if self.attributes else "",
+            ", ".join(sorted(self.attributes)) if self.attributes else "",
+        )
 
 if __name__ == "__main__":
     dataStructures = Course(
