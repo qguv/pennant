@@ -167,14 +167,13 @@ def parseHtml(htmlText: str) -> list(tuple()):
     fullPattern = re.compile(crnPattern + dataPattern * 11)
     return re.findall(fullPattern, htmlText)
 
-def parseToCourseList(results: list(tuple())) -> list(Course()):
+def parseToCourseList(results: list(tuple())) -> list():
     '''
     Input is a list of tuples described in parseHtml().
     Output is a list of Course instances.
     '''
 
     import time
-    from course import Course
 
     openMap = {
         "OPEN": True,
@@ -268,7 +267,7 @@ def TestParse():
     for courseEntry in courseList:
         print(courseEntry.fullinfo())
 
-def autoCourseList() -> list(Course()):
+def autoCourseList() -> list():
     with open("results.html", 'r') as f:
         rawHtml = f.read()
 
