@@ -67,10 +67,7 @@ for result in results:
                 tdays.add(weekdayMap[d])
 
     if result[7] != '' and '-' in result[7]:
-        ttimes = result[7].split('-')
-        starttime = time.strptime(ttimes[0], "%H%M")
-        endtime = time.strptime(ttimes[1], "%H%M")
-        ttime = (starttime, endtime)
+        ttime = result[7]
     else:
         ttime = tuple()
 

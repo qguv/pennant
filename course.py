@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim:si:et:ts=4:sw=4
 
-from datetime import time
+import time
 
 
 class Course:
@@ -18,11 +18,20 @@ class Course:
         self.attributes = set(kwargs["attributes"])
         self.gers = set(kwargs["gers"])
         self.days = set(kwargs["days"])
-        self.times = tuple(kwargs["times"])
         self.projectedE = int(kwargs["projectedE"])
         self.currentE = int(kwargs["currentE"])
         self.seats = int(kwargs["seats"])
+
         self.professorLast = self.professor.split(",")[0]
+
+        if kwargs["times"] != '' and '-' in kwargs["times"]:
+            self.times = kwargs["times"]
+            self.times = self.times.split('-')
+            starttime = time.strptime(self.times[0], "%H%M")
+            endtime = time.strptime(self.times[1], "%H%M")
+            self.times = (starttime, endtime)
+        else:
+            self.times = tuple()
 
     def oneline(self):
         pattern = "{}: {} w/ Prof. {} ({} {}-{}, CRN {})"
@@ -52,8 +61,8 @@ class Course:
     def fullinfo(self):
         try:
             humanTime = time.strftime("%I:%M %p", self.times[0]) \
-                + time.strftime("%I:%M %p", self.times[1])
-        except: #TODO: Fix
+                + " to " + time.strftime("%I:%M %p", self.times[1])
+        except IndexError:
             humanTime = ''
 
         pattern = "{} w/ Prof. {}\n    "
@@ -72,8 +81,8 @@ class Course:
             self.crn,
         # newline
             ", ".join(self.days) if self.days else '',
-            " at " if self.days and humanTime else \
-                "meets at " if humanTime else '',
+            " from " if self.days and humanTime else \
+                "meets from " if humanTime else '',
             humanTime + "\n    " if self.days or humanTime else '',
         # newline
             "GER " + ", ".join(sorted(self.gers)) if self.gers else "no GERs",
@@ -97,9 +106,9 @@ if __name__ == "__main__":
         attributes={},
         gers={},
         days={"Monday", "Wendsday"},
-        times=(time(14, 0), time(15, 20)),
+        times="1400-1520",
         projectedE=40,
         currentE=39,
         seats=1,
     )
-    print(dataStructures)
+    print(dataStructures.fullinfo())
