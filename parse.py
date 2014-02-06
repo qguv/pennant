@@ -34,6 +34,8 @@ for testRes in results:
     tsection = titleData[2]
 
     ttitle = testRes[3]
+    ttitle = ttitle.replace("&amp;","&")
+
     tprof = testRes[4]
     tcredit = testRes[5]
 
@@ -72,7 +74,8 @@ for testRes in results:
 
 print()
 
-print(masterCourses[0].title)
+for i in range(len(masterCourses)):
+    print(masterCourses[i])
 
 #for result in results:
     #for attr in result:

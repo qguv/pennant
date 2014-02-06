@@ -21,6 +21,10 @@ class Course:
         self.currentE = int(kwargs["currentE"])
         self.seats = int(kwargs["seats"])
 
+    def __str__(self):
+        retStr = "{0}-{1}-{2}\t{3}\t    {4}\t{5}".format(self.department,self.level,self.section,self.title,self.professor,str(self.isOpen))
+        return retStr
+
 
 #dataStructures = Course(isOpen=True,crn=12345,department="CSCI",level="241",section=1,title="Data Structures",professor="R. Dickerson",creditHours="3",attributes={},gers={},days={"Monday","Wendsday"},times=(time(14,0),time(15,20)),projectedE=40,currentE=39,seats=1)
 
