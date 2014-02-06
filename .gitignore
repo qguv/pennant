@@ -1,2 +1,4 @@
 .DS_Store
 results.html
+__pycache__
+*.pyc
