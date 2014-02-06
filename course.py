@@ -69,5 +69,3 @@ if __name__ == "__main__":
         seats=1,
     )
     print(dataStructures)
-    print(dataStructures)
-    print(dataStructures)
