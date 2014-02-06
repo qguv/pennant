@@ -111,4 +111,6 @@ if __name__ == "__main__":
         currentE=39,
         seats=1,
     )
-    print(dataStructures.fullinfo())
+    print("Data Structures Course, standard output:\n\n", dataStructures, "\n\n")
+    print("Data Structures Course, oneline:\n\n", dataStructures.oneline(), "\n\n")
+    print("Data Structures Course, fullinfo:\n\n", dataStructures.fullinfo())
