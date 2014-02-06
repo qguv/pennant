@@ -50,21 +50,38 @@ class Course:
         )
 
     def fullinfo(self):
-        pattern = "{} w/ Prof. {}\n"
-        pattern += "    {} ({} {}-{}, CRN {})\n"
-        pattern += "    {} credit{}{}{}\n"
+        try:
+            humanTime = time.strftime("%I:%M %p", self.times[0]) \
+                + time.strftime("%I:%M %p", self.times[1])
+        except: #TODO: Fix
+            humanTime = ''
+
+        pattern = "{} w/ Prof. {}\n    "
+        pattern += "{} ({} {}-{}, CRN {})\n    "
+        pattern += "{}{}{}"
+        pattern += "fulfills {}\n    "
+        pattern += "{} credit{}{}{}\n"
         return pattern.format(
             self.title,
             self.professorLast,
+        # newline
             "OPEN" if self.isOpen else "CLOSED",
             self.department,
             self.level,
             self.section,
             self.crn,
+        # newline
+            ", ".join(self.days) if self.days else '',
+            " at " if self.days and humanTime else \
+                "meets at " if humanTime else '',
+            humanTime + "\n    " if self.days or humanTime else '',
+        # newline
+            "GER " + ", ".join(sorted(self.gers)) if self.gers else "no GERs",
+        # newline
             self.creditHours,
-            "s" if self.creditHours != '1' else "",
-            ": " if self.attributes else "",
-            ", ".join(sorted(self.attributes)) if self.attributes else "",
+            's' if self.creditHours != '1' else '',
+            ": " if self.attributes else '',
+            ", ".join(sorted(self.attributes)) if self.attributes else '',
         )
 
 if __name__ == "__main__":

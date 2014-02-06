@@ -66,12 +66,13 @@ for result in results:
             if d in "MTWRF":
                 tdays.add(weekdayMap[d])
 
-    ttime = ('', '')
     if result[7] != '' and '-' in result[7]:
         ttimes = result[7].split('-')
         starttime = time.strptime(ttimes[0], "%H%M")
         endtime = time.strptime(ttimes[1], "%H%M")
         ttime = (starttime, endtime)
+    else:
+        ttime = tuple()
 
     tprojectede = int(result[8])
     tcurrente = int(result[9])
