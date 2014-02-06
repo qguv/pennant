@@ -9,7 +9,7 @@ class Course:
         self.crn = int(kwargs["crn"])
         self.department = str(kwargs["department"])
         self.level = str(kwargs["level"])
-        self.section = int(kwargs["section"])
+        self.section = str(kwargs["section"])
         self.title = str(kwargs["title"])
         self.professor = str(kwargs["professor"])
         self.creditHours = str(kwargs["creditHours"])

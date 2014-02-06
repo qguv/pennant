@@ -31,7 +31,7 @@ for testRes in results:
     titleData = testRes[1].split(" ")
     tdepart = titleData[0]
     tlevel = titleData[1]
-    tsection = int(titleData[2])
+    tsection = titleData[2]
 
     ttitle = testRes[3]
     tprof = testRes[4]
