@@ -6,7 +6,7 @@ import time
 from course import Course
 
 
-with open("results.html", "r") as f:
+with open("results.html", 'r') as f:
     htmlText = f.read()
 
 crnPattern = r'<td.*>\s*<a[^>]*>([^<]+)</a>\s*</td>\s*'
@@ -18,12 +18,13 @@ openMap = {
     "OPEN": True,
     "CLOSED": False
 }
+
 weekdayMap = {
-    "M": "Monday",
-    "T": "Tuesday",
-    "W": "Wednesday",
-    "R": "Thursday",
-    "F": "Friday",
+    'M': "Monday",
+    'T': "Tuesday",
+    'W': "Wednesday",
+    'R': "Thursday",
+    'F': "Friday",
 }
 
 masterCourses = []
@@ -38,31 +39,36 @@ for result in results:
     tsection = titleData[2]
 
     ttitle = result[3]
-    ttitle = ttitle.replace("&amp;", "&")
+    ttitle = ttitle.replace("&amp;", '&')
+    ttitle = ttitle.replace("&#39;", '\'')
 
     tprof = result[4]
     tcredit = result[5]
 
     tattrs = set()
     tgers = set()
-    if result[2] != "":
+    if result[2] != '':
         attribs = result[2].split(", ")
         for attrib in attribs:
             if "GE" in attrib:
-                tgers.add(attrib)
+                tgers.add(attrib[2:])
+            elif "&nbsp;" in attrib:
+                continue
+            elif attrib in ('.'):
+                continue
             else:
                 tattrs.add(attrib)
 
     days = result[6]
     tdays = set()
-    if days != "":
+    if days != '':
         for d in days:
             if d in "MTWRF":
                 tdays.add(weekdayMap[d])
 
-    ttime = ("", "")
-    if result[7] != "" and '-' in result[7]:
-        ttimes = result[7].split("-")
+    ttime = ('', '')
+    if result[7] != '' and '-' in result[7]:
+        ttimes = result[7].split('-')
         starttime = time.strptime(ttimes[0], "%H%M")
         endtime = time.strptime(ttimes[1], "%H%M")
         ttime = (starttime, endtime)
