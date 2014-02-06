@@ -17,7 +17,7 @@ class Course:
         self.creditHours = str(kwargs["creditHours"])
         self.attributes = set(kwargs["attributes"])
         self.gers = set(kwargs["gers"])
-        self.days = set(kwargs["days"])
+        self.days = list(kwargs["days"])
         self.projectedE = int(kwargs["projectedE"])
         self.currentE = int(kwargs["currentE"])
         self.seats = int(kwargs["seats"])

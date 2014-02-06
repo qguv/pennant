@@ -60,11 +60,11 @@ for result in results:
                 tattrs.add(attrib)
 
     days = result[6]
-    tdays = set()
+    tdays = list()
     if days != '':
         for d in days:
             if d in "MTWRF":
-                tdays.add(weekdayMap[d])
+                tdays.append(weekdayMap[d])
 
     if result[7] != '' and '-' in result[7]:
         ttime = result[7]
