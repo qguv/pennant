@@ -45,4 +45,16 @@ Black Speculative Arts is open
 >>> "Thursday" in courses[0].days
 True
 >>>
+
 ```
+
+## Setting Up a Server
+To set up a server, you need a linux system with the following installed
+    Python >= 3.0
+    Django 1.6
+    mod_wsgi
+    gunicorn
+
+To install these, use your system's package manager, with the exception of gunicorn. To install gunicorn, simply use:
+    pip3 install gunicorn
+
