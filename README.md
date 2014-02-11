@@ -85,4 +85,10 @@ python3 quickfetch.py
 Finally, to start the server, issue this command in the same directory as ```manage.py```
 ```
 gunicorn wm.wsgi:application
+```
+
+Note: If you cannot connect to your server, try running it with 
+```
+gunicorn -b 0.0.0.0:80 wm.wsgi:application
 ``` 
+(May require root access to bind to port 80)
