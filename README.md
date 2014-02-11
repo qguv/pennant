@@ -61,3 +61,18 @@ To install these, use your system's package manager, with the exception of gunic
     ```
     pip3 install gunicorn
     ```
+
+Next, clone the repository, and rename the parent directory to ```wm``` (IMPORTANT)
+
+Your directory structure should look like this
+```
+wm
+|____pennant
+|
+|____wm
+|
+|____manage.py
+|
+|____(other files)
+
+```
