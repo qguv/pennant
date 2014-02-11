@@ -136,7 +136,7 @@ def scrapeCourselist() -> str:
 def writeCourselist(filename: str):
     '''Writes raw html scraped from <courselist.wm.edu> to given file.'''
 
-    response = scrapeCourseList()
+    response = scrapeCourselist()
     with open(filename, 'w') as f:
         f.write(response)
 
@@ -275,3 +275,4 @@ def autoCourseList() -> list():
     courseList = parseToCourseList(parsedHtml)
     
     return courseList
+
