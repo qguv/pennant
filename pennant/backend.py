@@ -2,6 +2,7 @@
 # vim:si:et:ts=4:sw=4
 
 import time
+import json
 
 
 class Course:
@@ -92,6 +93,11 @@ class Course:
             ": " if self.attributes else '',
             ", ".join(sorted(self.attributes)) if self.attributes else '',
         )
+
+    def toJSON(self):
+        jsonStr = json.dumps({"isOpen":self.isOpen,"crn":self.crn,"title":self.title,"department":self.department,"section":self.section,"professor":self.professor,"creditHours":self.creditHours,"attributes":list(self.attributes),"gers":list(self.gers),"days":list(self.days),"projectedE":self.projectedE,"currentE":self.currentE,"seats":self.seats})
+        return jsonStr
+
 
 def TestCourse():
     dataStructures = Course(
@@ -276,3 +282,5 @@ def autoCourseList() -> list():
     
     return courseList
 
+cList = autoCourseList()
+print(cList[0].toJSON())
