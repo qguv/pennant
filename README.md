@@ -62,7 +62,7 @@ To install these, use your system's package manager, with the exception of gunic
     pip3 install gunicorn
     ```
 
-Next, clone the repository, and rename the parent directory to ```wm``` (IMPORTANT)
+Next, clone this repository, and rename the parent directory to ```wm``` (IMPORTANT)
 
 Your directory structure should look like this
 ```
@@ -76,3 +76,13 @@ wm
 |____(other files)
 
 ```
+
+In order to have data to read, you need to run the scraper script as follows
+```
+python3 quickfetch.py
+```
+
+Finally, to start the server, issue this command in the same directory as ```manage.py```
+```
+gunicorn wm.wsgi:application
+``` 
