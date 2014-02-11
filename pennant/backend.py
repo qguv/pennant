@@ -282,5 +282,3 @@ def autoCourseList() -> list():
     
     return courseList
 
-cList = autoCourseList()
-print(cList[0].toJSON())
