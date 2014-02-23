@@ -3,12 +3,13 @@ pennant
 
 _"A course list which doesn't suck."_
 
-A front-end for William and Mary's open course list system.
+A front-end API for William and Mary's course list system.
 
 ## Warning
-Please don't call pb.scrapeCourselist() too often. W&M's [courselist][] website
-is very weak and the function puts quite a bit of strain on it. Don't get us in
-trouble; scrape no more than once every five minutes, and be sure to offset.
+In addition to the GPL, the [license] for this open-source API now mandates
+that all derivative works do not scrape W&M's [courselist][] more than once
+every five minutes. This is because the website is very weak, and the scraping
+function `pb.scrapeCourselist()` puts noticeable strain on it.
 
 [courselist]: https://courselist.wm.edu/
 
@@ -45,50 +46,61 @@ Black Speculative Arts is open
 >>> "Thursday" in courses[0].days
 True
 >>>
-
 ```
 
 ## Setting Up a Server
 
-To set up a server, you need a linux system with the following installed
-```
+To set up a server, you need a linux system with the following installed:
+
     Python >= 3.0
     Django 1.6
     mod_wsgi
     gunicorn
-```
-To install these, use your system's package manager, with the exception of gunicorn. To install gunicorn, simply use:
-    ```
+
+To install these, use your system's package manager, with the exception of
+gunicorn. To install gunicorn, simply use:
+
     pip3 install gunicorn
-    ```
 
-Next, clone this repository, and rename the parent directory to ```wm``` (IMPORTANT)
+Next, clone this repository to `wm`:
 
-Your directory structure should look like this
-```
-wm
-|____pennant
-|
-|____wm
-|
-|____manage.py
-|
-|____(other files)
+    git clone https://github.com/wm-pennant/pennant.git wm
 
-```
+Your directory structure should look like this:
 
-In order to have data to read, you need to run the scraper script as follows
-```
-python3 quickfetch.py
-```
+    wm
+    |____pennant
+    |
+    |____wm
+    |
+    |____manage.py
+    |
+    |____(other files)
 
-Finally, to start the server, issue this command in the same directory as ```manage.py```
-```
-gunicorn wm.wsgi:application
-```
 
-Note: If you cannot connect to your server, try running it with 
-```
-gunicorn -b 0.0.0.0:80 wm.wsgi:application
-``` 
+In order to have data to read, you need to run the scraper script as follows:
+
+    python3 quickfetch.py
+
+**Note: The above script calls `scrapeCourselist()`, so do not call it more
+than once every five minutes.**
+
+Finally, to start the server, issue this command in the same directory as
+`manage.py`:
+
+    gunicorn wm.wsgi:application
+
+Note: If you cannot connect to your server, try running it with:
+
+    gunicorn -b 0.0.0.0:80 wm.wsgi:application
+
 (May require root access to bind to port 80)
+
+## Disclaimer
+
+Please carefully read the [license][], which has recently changed.
+
+[license]: https://github.com/wm-pennant/pennant/blob/master/LICENSE
+
+This API uses only REST queries and does nothing you couldn't do with a
+browser.
