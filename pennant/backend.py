@@ -95,7 +95,12 @@ class Course:
         )
 
     def toJSON(self):
-        jsonStr = json.dumps({"isOpen":self.isOpen,"crn":self.crn,"title":self.title,"department":self.department,"section":self.section,"professor":self.professor,"creditHours":self.creditHours,"attributes":list(self.attributes),"gers":list(self.gers),"days":list(self.days),"projectedE":self.projectedE,"currentE":self.currentE,"seats":self.seats})
+        timeTuple = self.times
+        if len(timeTuple) == 2:
+            timeTuple = (time.strftime("%H%M",self.times[0]),time.strftime("%H%M",self.times[1]))
+        else:
+            timeTuple = ("","")
+        jsonStr = json.dumps({"level":self.level,"isOpen":self.isOpen,"crn":self.crn,"title":self.title,"department":self.department,"section":self.section,"professor":self.professor,"creditHours":self.creditHours,"attributes":list(self.attributes),"gers":list(self.gers),"days":list(self.days),"times":list(timeTuple),"projectedE":self.projectedE,"currentE":self.currentE,"seats":self.seats})
         return jsonStr
 
 
