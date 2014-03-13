@@ -133,7 +133,7 @@ def scrapeCourselist() -> str:
 
     url = "https://courselist.wm.edu/courseinfo/searchresults"
     payload = {
-        "term_code": "201420",  # Spring 2014
+        "term_code": "201510",  # Fall 2014
         "term_subj": "0",       # ALL
         "attr": "0",            # ALL
         "levl": "0",            # ALL
