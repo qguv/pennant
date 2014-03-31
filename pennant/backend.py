@@ -1,9 +1,9 @@
-#!/usr/bin/env python3
+#/usr/bin/env python3
 # vim:si:et:ts=4:sw=4
 
 import time
 import json
-
+import sqlite3
 
 class Course:
 
@@ -16,9 +16,13 @@ class Course:
         self.title = str(kwargs["title"])
         self.professor = str(kwargs["professor"])
         self.creditHours = str(kwargs["creditHours"])
-        self.attributes = set(kwargs["attributes"])
-        self.gers = set(kwargs["gers"])
-        self.days = list(kwargs["days"])
+        self.attributes = kwargs["attributes"]
+        if self.attributes == "set()":
+            self.attributes = ""
+        self.gers = kwargs["gers"]
+        if self.gers == "set()":
+            self.gers = ""
+        self.days = kwargs["days"]
         self.projectedE = int(kwargs["projectedE"])
         self.currentE = int(kwargs["currentE"])
         self.seats = int(kwargs["seats"])
@@ -31,6 +35,8 @@ class Course:
             starttime = time.strptime(self.times[0], "%H%M")
             endtime = time.strptime(self.times[1], "%H%M")
             self.times = (starttime, endtime)
+        elif kwargs["times"] != '' and kwargs["times"][0] == '(':
+            self.times = kwargs["times"]
         else:
             self.times = tuple()
 
@@ -99,8 +105,8 @@ class Course:
         if len(timeTuple) == 2:
             timeTuple = (time.strftime("%H%M",self.times[0]),time.strftime("%H%M",self.times[1]))
         else:
-            timeTuple = ("","")
-        jsonStr = json.dumps({"level":self.level,"isOpen":self.isOpen,"crn":self.crn,"title":self.title,"department":self.department,"section":self.section,"professor":self.professor,"creditHours":self.creditHours,"attributes":list(self.attributes),"gers":list(self.gers),"days":list(self.days),"times":list(timeTuple),"projectedE":self.projectedE,"currentE":self.currentE,"seats":self.seats})
+            timeTuple = self.times
+        jsonStr = json.dumps({"isOpen":self.isOpen,"crn":self.crn,"title":self.title,"department":self.department,"level":self.level,"section":self.section,"professor":self.professor,"creditHours":self.creditHours,"attributes":self.attributes,"gers":self.gers,"days":self.days,"projectedE":self.projectedE,"currentE":self.currentE,"seats":self.seats,"times":timeTuple})
         return jsonStr
 
 
@@ -278,12 +284,90 @@ def TestParse():
     for courseEntry in courseList:
         print(courseEntry.fullinfo())
 
-def autoCourseList() -> list():
-    with open("results.html", 'r') as f:
+
+def setupDB():
+    db = sqlite3.connect('courses.db')
+
+    c = db.cursor()
+
+    c.execute('''create table courses (isopen integer,crn integer,department text,level text,section text,title text,professor text,credithours text,attributes text,gers text,days text,projectedE integer,currentE integer,seats integer,times text)''');
+
+    db.commit()
+
+    c.close()
+
+def toDB():
+    with open("results.html",'r') as f:
         rawHtml = f.read()
 
     parsedHtml = parseHtml(rawHtml)
     courseList = parseToCourseList(parsedHtml)
-    
-    return courseList
 
+    db = sqlite3.connect('courses.db')
+
+    c = db.cursor()
+
+    for course in courseList:
+        if len(course.times) != 0:
+            sqlString = "insert into courses values ({})".format(','.join([str(int(course.isOpen)), str(course.crn), '"' + course.department + '"', '"' + course.level + '"', '"' + course.section + '"', '"' + course.title + '"', '"' + course.professor + '"','"' + str(course.creditHours) + '"', '"' + str(course.attributes) + '"','"' +  str(course.gers) + '"', '"' + str(course.days) + '"', str(course.projectedE), str(course.currentE), str(course.seats), '"' + str((time.strftime("%H%M",course.times[0]),time.strftime("%H%M",course.times[1]))) + '"']))
+        else:
+            sqlString = "insert into courses values ({})".format(','.join([str(int(course.isOpen)), str(course.crn), '"' + course.department + '"', '"' + course.level + '"', '"' + course.section + '"', '"' + course.title + '"', '"' + course.professor + '"','"' + str(course.creditHours) + '"', '"' + str(course.attributes) + '"','"' +  str(course.gers) + '"', '"' + str(course.days) + '"', str(course.projectedE), str(course.currentE), str(course.seats), '""']))
+
+        print(sqlString)
+        c.execute(sqlString)
+    
+    db.commit()
+
+    c.close()
+
+
+def autoCourseList(useDB) -> list():
+    if useDB == False:
+        with open("results.html", 'r') as f:
+            rawHtml = f.read()
+
+        parsedHtml = parseHtml(rawHtml)
+        courseList = parseToCourseList(parsedHtml)
+    
+        return courseList
+    else:
+        courseList = []
+
+        db = sqlite3.connect('courses.db')
+
+        c = db.cursor()
+
+        c.execute("select * from courses")
+
+        for item in c:
+            courseList.append(Course(isOpen=item[0],crn=item[1],department=item[2],level=item[3],section=item[4],title=item[5],professor=item[6],creditHours=item[7],attributes=item[8],gers=item[9],days=item[10],projectedE=item[11],currentE=item[12],seats=item[13],times=item[14]))
+            print(item)
+
+        cDict = {}
+        for i in range(len(courseList)):
+            x = courseList[i]
+            if str(x.crn) in cDict:
+                cDict[str(x.crn)].times += "," + str(x.times)
+                courseList[i] = cDict[str(x.crn)]
+            else:
+                cDict[str(x.crn)] = x
+        courseList = []
+        for item in cDict:
+            if item not in courseList:
+                courseList.append(cDict[item])
+
+
+        return courseList
+
+
+if __name__ == "__main__":
+    #print("Setting up DB...")
+    #setupDB()
+    #toDB()
+    courses = autoCourseList(True)
+    astroCourses = list(filter(lambda x: x.department == "PHYS",courses))
+    cDict = {}
+    crns = []
+    
+    for i in astroCourses:
+        print(str(i.crn) + ' ' + i.title + ' ' + str(i.times))
