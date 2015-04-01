@@ -6,6 +6,46 @@ import json
 import sqlite3
 
 class Course:
+    '''An object representing a W&M course. Has the following attributes:
+
+    isOpen: whether the course is listed as taking more students,
+    regardless of whether the room accomodates
+
+    crn: Banner's course registration number
+
+    department: the department hosting the course. For cross listed
+    courses, there will be multiple course entries.
+
+    level: the traditional-style course number, e.g. "303" for CSCI
+    303. This must be a string, because some course numbers, like
+    private lessons or freshman seminars, aren't numeric.
+
+    section
+
+    title: the Banner-abbreviated course name
+
+    professor: the lecturer or professor instructing the course
+
+    creditHours: how many credits the course is worth
+
+    attributes: what COLLs or special attributes (lab fee and the like) are
+    associated with the course
+
+    gers: which General Education Requirements the course fulfills
+    [deprecated, but grandfathered until 2018]
+
+    days: which days the course meets
+
+    projectedE: Banner's always-wrong "Projected Enrollment"
+
+    currentE: Banner's often-wrong "Current Enrollment"
+
+    seats: Banner's usually-wrong "Seats Remaining"
+
+    professorLast: instructor's last name
+
+    times: the times the course is held
+    '''
 
     def __init__(self, **kwargs):
         self.isOpen = bool(kwargs["isOpen"])
