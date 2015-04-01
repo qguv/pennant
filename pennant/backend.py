@@ -73,10 +73,15 @@ class Course:
         except IndexError:
             humanTime = ''
 
-        pattern = "{} w/ Prof. {}\n    "
-        pattern += "{} ({} {}-{}, CRN {})\n    "
+        newline = "\n  "
+        pattern =  "{} w/ Prof. {}"
+        pattern += newline
+        pattern += "{} ({} {}-{}, CRN {}); {} seat{} left"
+        pattern += newline
         pattern += "{}{}{}"
-        pattern += "fulfills {}\n    "
+        pattern += newline
+        pattern += "fulfills {}"
+        pattern += newline
         pattern += "{} credit{}{}{}\n"
         return pattern.format(
             self.title,
@@ -87,11 +92,12 @@ class Course:
             self.level,
             self.section,
             self.crn,
+            self.seats if self.seats != 0 else "no",
+            's' if self.seats != 1 else '',
         # newline
-            ", ".join(self.days) if self.days else '',
-            " from " if self.days and humanTime else \
-                "meets from " if humanTime else '',
-            humanTime + "\n    " if self.days or humanTime else '',
+            ", ".join(self.days) if self.days else "meeting",
+            " from " if humanTime else " times TBA",
+            humanTime,
         # newline
             "GER " + ", ".join(sorted(self.gers)) if self.gers else "no GERs",
         # newline
@@ -110,6 +116,8 @@ class Course:
         jsonStr = json.dumps({"isOpen":self.isOpen,"crn":self.crn,"title":self.title,"department":self.department,"level":self.level,"section":self.section,"professor":self.professor,"creditHours":self.creditHours,"attributes":self.attributes,"gers":self.gers,"days":self.days,"projectedE":self.projectedE,"currentE":self.currentE,"seats":self.seats,"times":timeTuple})
         return jsonStr
 
+def numeric(alphanumeric):
+    return int(''.join(c for c in alphanumeric if c.isdigit()))
 
 def TestCourse():
     dataStructures = Course(
