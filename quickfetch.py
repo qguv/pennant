@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import pennant.backend
 
 print("Retrieving course list...")
