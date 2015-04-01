@@ -29,13 +29,14 @@ class Course:
 
         self.professorLast = self.professor.split(",")[0]
 
-        if kwargs["times"] != '' and '-' in kwargs["times"]:
+        empty = len(kwargs["times"]) == 0
+        if not empty and '-' in kwargs["times"]:
             self.times = kwargs["times"]
             self.times = self.times.split('-')
             starttime = time.strptime(self.times[0], "%H%M")
             endtime = time.strptime(self.times[1], "%H%M")
             self.times = (starttime, endtime)
-        elif kwargs["times"] != '' and kwargs["times"][0] == '(':
+        elif not empty and kwargs["times"][0] == '(':
             self.times = kwargs["times"]
         else:
             self.times = tuple()
@@ -137,9 +138,9 @@ def scrapeCourselist() -> str:
 
     import requests
 
-    url = "https://courselist.wm.edu/courseinfo/searchresults"
+    url = "https://courselist.wm.edu/courselist/courseinfo/searchresults"
     payload = {
-        "term_code": "201510",  # Fall 2014
+        "term_code": "201610",  # Fall 2015
         "term_subj": "0",       # ALL
         "attr": "0",            # ALL
         "levl": "0",            # ALL
@@ -251,7 +252,7 @@ def parseToCourseList(results: list(tuple())) -> list():
 
         tprojectede = int(result[8])
         tcurrente = int(result[9])
-        tseats = int(result[10])
+        tseats = int(result[10].strip('*'))
 
         someCourse = Course(
             isOpen=topn,
