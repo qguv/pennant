@@ -146,14 +146,31 @@ class Course:
             ": " if self.attributes else '',
             ", ".join(sorted(self.attributes)) if self.attributes else '')
 
-    def toJSON(self):
+    def toDict(self):
         timeTuple = self.times
         if len(timeTuple) == 2:
             timeTuple = (time.strftime("%H%M",self.times[0]),time.strftime("%H%M",self.times[1]))
         else:
             timeTuple = self.times
-        jsonStr = json.dumps({"isOpen":self.isOpen,"crn":self.crn,"title":self.title,"department":self.department,"level":self.level,"section":self.section,"professor":self.professor,"creditHours":self.creditHours,"attributes":self.attributes,"gers":self.gers,"days":self.days,"projectedE":self.projectedE,"currentE":self.currentE,"seats":self.seats,"times":timeTuple})
-        return jsonStr
+        return {
+            "title": self.title,
+            "crn": self.crn,
+            "department": self.department,
+            "isOpen": self.isOpen,
+            "level": self.level,
+            "section": self.section,
+            "professor": self.professor,
+            "creditHours": self.creditHours,
+            "attributes": list(self.attributes), #TODO
+            "gers": list(self.gers), #TODO
+            "days": self.days,
+            "projectedE": self.projectedE,
+            "currentE": self.currentE,
+            "seats": self.seats,
+            "times": timeTuple}
+
+    def toJSON(self):
+        return json.dumps(self.toDict())
 
 def numeric(alphanumeric):
     return int(''.join(c for c in alphanumeric if c.isdigit()))
