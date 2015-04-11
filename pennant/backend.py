@@ -1,9 +1,11 @@
-#/usr/bin/env python3
+#!/usr/bin/env python3
 # vim:si:et:ts=4:sw=4
 
 import time
 import json
 import sqlite3
+import requests
+import re
 
 class Course:
     '''An object representing a W&M course. Has the following attributes:
@@ -90,8 +92,7 @@ class Course:
             self.department,
             self.level,
             self.section,
-            self.crn,
-        )
+            self.crn)
 
     def __str__(self):
         pattern = "{} w/ Prof. {}\n"
@@ -103,8 +104,7 @@ class Course:
             self.department,
             self.level,
             self.section,
-            self.crn,
-        )
+            self.crn)
 
     def fullinfo(self):
         try:
@@ -144,8 +144,7 @@ class Course:
             self.creditHours,
             's' if self.creditHours != '1' else '',
             ": " if self.attributes else '',
-            ", ".join(sorted(self.attributes)) if self.attributes else '',
-        )
+            ", ".join(sorted(self.attributes)) if self.attributes else '')
 
     def toJSON(self):
         timeTuple = self.times
@@ -159,32 +158,8 @@ class Course:
 def numeric(alphanumeric):
     return int(''.join(c for c in alphanumeric if c.isdigit()))
 
-def TestCourse():
-    dataStructures = Course(
-        isOpen=True,
-        crn=12345,
-        department="CSCI",
-        level="241",
-        section=1,
-        title="Data Structures",
-        professor="Dickerson, Robert F.",
-        creditHours="3",
-        attributes={},
-        gers={},
-        days={"Monday", "Wendsday"},
-        times="1400-1520",
-        projectedE=40,
-        currentE=39,
-        seats=1,
-    )
-    print("Data Structures Course, standard output:\n\n", dataStructures, "\n\n")
-    print("Data Structures Course, oneline:\n\n", dataStructures.oneline(), "\n\n")
-    print("Data Structures Course, fullinfo:\n\n", dataStructures.fullinfo())
-
 def scrapeCourselist() -> str:
     '''Outputs raw html scraped from <courselist.wm.edu>.'''
-
-    import requests
 
     url = "https://courselist.wm.edu/courselist/courseinfo/searchresults"
     payload = {
@@ -226,8 +201,6 @@ def parseHtml(htmlText: str) -> list(tuple()):
     11: "OPEN" or "CLOSED"
     '''
 
-    import re
-
     crnPattern = r'<td.*>\s*<a[^>]*>([^<]+)</a>\s*</td>\s*'
     dataPattern = r'<td[^>]*>([^<]+)</td>\s*'
     fullPattern = re.compile(crnPattern + dataPattern * 11)
@@ -239,20 +212,16 @@ def parseToCourseList(results: list(tuple())) -> list():
     Output is a list of Course instances.
     '''
 
-    import time
-
     openMap = {
         "OPEN": True,
-        "CLOSED": False
-    }
+        "CLOSED": False}
 
     weekdayMap = {
         'M': "Monday",
         'T': "Tuesday",
         'W': "Wednesday",
         'R': "Thursday",
-        'F': "Friday",
-    }
+        'F': "Friday"}
 
     masterCourses = []
 
@@ -323,96 +292,7 @@ def parseToCourseList(results: list(tuple())) -> list():
 
     return masterCourses
 
-def TestParse():
-    with open("results.html", 'r') as f:
-        rawHtml = f.read()
-
-    parsedHtml = parseHtml(rawHtml)
-    courseList = parseToCourseList(parsedHtml)
-
-    for courseEntry in courseList:
-        print(courseEntry.fullinfo())
-
-
-def setupDB():
-    db = sqlite3.connect('courses.db')
-
-    c = db.cursor()
-
-    c.execute('''create table courses (isopen integer,crn integer,department text,level text,section text,title text,professor text,credithours text,attributes text,gers text,days text,projectedE integer,currentE integer,seats integer,times text)''');
-
-    db.commit()
-
-    c.close()
-
-def toDB():
-    with open("results.html",'r') as f:
-        rawHtml = f.read()
-
-    parsedHtml = parseHtml(rawHtml)
-    courseList = parseToCourseList(parsedHtml)
-
-    db = sqlite3.connect('courses.db')
-
-    c = db.cursor()
-
-    for course in courseList:
-        if len(course.times) != 0:
-            sqlString = "insert into courses values ({})".format(','.join([str(int(course.isOpen)), str(course.crn), '"' + course.department + '"', '"' + course.level + '"', '"' + course.section + '"', '"' + course.title + '"', '"' + course.professor + '"','"' + str(course.creditHours) + '"', '"' + str(course.attributes) + '"','"' +  str(course.gers) + '"', '"' + str(course.days) + '"', str(course.projectedE), str(course.currentE), str(course.seats), '"' + str((time.strftime("%H%M",course.times[0]),time.strftime("%H%M",course.times[1]))) + '"']))
-        else:
-            sqlString = "insert into courses values ({})".format(','.join([str(int(course.isOpen)), str(course.crn), '"' + course.department + '"', '"' + course.level + '"', '"' + course.section + '"', '"' + course.title + '"', '"' + course.professor + '"','"' + str(course.creditHours) + '"', '"' + str(course.attributes) + '"','"' +  str(course.gers) + '"', '"' + str(course.days) + '"', str(course.projectedE), str(course.currentE), str(course.seats), '""']))
-
-        print(sqlString)
-        c.execute(sqlString)
-    
-    db.commit()
-
-    c.close()
-
-
-def autoCourseList(useDB) -> list():
-    if useDB == False:
-        with open("results.html", 'r') as f:
-            rawHtml = f.read()
-
-        parsedHtml = parseHtml(rawHtml)
-        courseList = parseToCourseList(parsedHtml)
-    
-        return courseList
-    else:
-        courseList = []
-
-        db = sqlite3.connect('courses.db')
-
-        c = db.cursor()
-
-        c.execute("select * from courses")
-
-        for item in c:
-            courseList.append(Course(isOpen=item[0],crn=item[1],department=item[2],level=item[3],section=item[4],title=item[5],professor=item[6],creditHours=item[7],attributes=item[8],gers=item[9],days=item[10],projectedE=item[11],currentE=item[12],seats=item[13],times=item[14]))
-            print(item)
-
-        cDict = {}
-        for i in range(len(courseList)):
-            x = courseList[i]
-            if str(x.crn) in cDict:
-                cDict[str(x.crn)].times += "," + str(x.times)
-                courseList[i] = cDict[str(x.crn)]
-            else:
-                cDict[str(x.crn)] = x
-        courseList = []
-        for item in cDict:
-            if item not in courseList:
-                courseList.append(cDict[item])
-
-
-        return courseList
-
-
 if __name__ == "__main__":
-    #print("Setting up DB...")
-    #setupDB()
-    #toDB()
     courses = autoCourseList(True)
     astroCourses = list(filter(lambda x: x.department == "PHYS",courses))
     cDict = {}
