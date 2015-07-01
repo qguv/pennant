@@ -7,6 +7,9 @@ import sqlite3
 import requests
 import re
 
+def numeric(alphanumeric):
+    return int(''.join(c for c in alphanumeric if c.isdigit()))
+
 class Course:
     '''An object representing a W&M course. Has the following attributes:
 
@@ -82,6 +85,12 @@ class Course:
             self.times = kwargs["times"]
         else:
             self.times = tuple()
+
+    def numeric_level(self):
+        try:
+            return int(self.level)
+        except ValueError:
+            return numeric(self.level)
 
     def oneline(self):
         pattern = "{}: {} w/ Prof. {} ({} {}-{}, CRN {})"
@@ -171,9 +180,6 @@ class Course:
 
     def toJSON(self):
         return json.dumps(self.toDict())
-
-def numeric(alphanumeric):
-    return int(''.join(c for c in alphanumeric if c.isdigit()))
 
 def scrapeCourselist() -> str:
     '''Outputs raw html scraped from <courselist.wm.edu>.'''
