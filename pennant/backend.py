@@ -181,16 +181,21 @@ class Course:
     def toJSON(self):
         return json.dumps(self.toDict())
 
-def scrapeCourselist() -> str:
+def numeric(alphanumeric):
+    return int(''.join(c for c in alphanumeric if c.isdigit()))
+
+def scrapeCourselist(termCode="201620") -> str:
     '''Outputs raw html scraped from <courselist.wm.edu>.'''
 
     url = "https://courselist.wm.edu/courselist/courseinfo/searchresults"
     payload = {
-        "term_code": "201610",  # Fall 2015
+        "term_code": termCode,  # Defaults to Spring 2016
         "term_subj": "0",       # ALL
         "attr": "0",            # ALL
+        "attr2": "0",           # ALL
         "levl": "0",            # ALL
         "status": "0",          # ALL
+        "ptrm": "0",            # ALL
     }
     r = requests.post(url, payload)
     response = r.text
