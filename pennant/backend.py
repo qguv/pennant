@@ -184,12 +184,12 @@ class Course:
 def numeric(alphanumeric):
     return int(''.join(c for c in alphanumeric if c.isdigit()))
 
-def scrapeCourselist(termCode="201620") -> str:
+def scrapeCourselist(termCode="201710") -> str:
     '''Outputs raw html scraped from <courselist.wm.edu>.'''
 
     url = "https://courselist.wm.edu/courselist/courseinfo/searchresults"
     payload = {
-        "term_code": termCode,  # Defaults to Spring 2016
+        "term_code": termCode,  # Defaults to Fall 2016
         "term_subj": "0",       # ALL
         "attr": "0",            # ALL
         "attr2": "0",           # ALL
