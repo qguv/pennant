@@ -23,7 +23,7 @@ def is_undergrad(course):
     except ValueError:
         return True
     
-    return level > 100 && level < 500
+    return level > 100 and level < 500
 
 class Course:
     '''An object representing a W&M course. Has the following attributes:
@@ -100,6 +100,9 @@ class Course:
             self.times = kwargs["times"]
         else:
             self.times = tuple()
+
+    def __eq__(self, other):
+        return self.crn == other.crn and self.times == other.times
 
     def numeric_level(self):
         try:
