@@ -10,6 +10,21 @@ import re
 def numeric(alphanumeric):
     return int(''.join(c for c in alphanumeric if c.isdigit()))
 
+def is_undergrad(course):
+    # labs are special
+    if course.level[-1].upper() == 'L':
+        level = int(course.level[:-1])
+
+    # most courses
+    try:
+        level = int(course.level)
+
+    # when in doubt, it's undergrad
+    except ValueError:
+        return True
+    
+    return level > 100 && level < 500
+
 class Course:
     '''An object representing a W&M course. Has the following attributes:
 
