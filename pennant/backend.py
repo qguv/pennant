@@ -7,6 +7,8 @@ import sqlite3
 import requests
 import re
 
+from textwrap import dedent, wrap
+
 def numeric(alphanumeric):
     return int(''.join(c for c in alphanumeric if c.isdigit()))
 
@@ -22,7 +24,7 @@ def is_undergrad(course):
     # when in doubt, it's undergrad
     except ValueError:
         return True
-    
+
     return level > 100 and level < 500
 
 def sort_by_scarcity(courses, reverse=False):
@@ -202,6 +204,42 @@ class Course:
     def toJSON(self):
         return json.dumps(self.toDict())
 
+    def generate_email(self, name=None, student_id=None, social_class=None, major=None):
+
+        if not self.isOpen:
+            problem = "the section is closed"
+        else:
+            problem = "I was unable to add the course"
+
+        header = """\
+        To: {0.professor}
+        Subject: [{0.department} {0.level}-{0.section}] Closed Section Override Request
+
+        Dear Professor {0.professorLast},
+        """
+
+        footer = """\
+        Kind regards,
+        {name}
+        {student_id}
+        """
+
+        body = """\
+        I am a {social_class} majoring in {major}. I was planning to take
+        {0.department} {0.level}, section {0.section} (CRN {0.crn}) this
+        semester, but unfortunately {problem}. Would it be possible to get an
+        override?
+        """
+
+        header = dedent(header.format(self))
+        footer = dedent(footer.format(name=name, student_id=student_id))
+        body_lines = wrap(dedent(body.format(self,
+            social_class=social_class,
+            major=major,
+            problem=problem
+        )))
+        return "{}\n{}\n\n{}".format(header, '\n'.join(body_lines), footer)
+
 def numeric(alphanumeric):
     return int(''.join(c for c in alphanumeric if c.isdigit()))
 
@@ -346,6 +384,6 @@ if __name__ == "__main__":
     astroCourses = list(filter(lambda x: x.department == "PHYS",courses))
     cDict = {}
     crns = []
-    
+
     for i in astroCourses:
         print(str(i.crn) + ' ' + i.title + ' ' + str(i.times))
