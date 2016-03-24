@@ -25,6 +25,9 @@ def is_undergrad(course):
     
     return level > 100 and level < 500
 
+def sort_by_scarcity(courses, reverse=False):
+    return sorted(courses, key=lambda c: c.seats, reverse=reverse)
+
 class Course:
     '''An object representing a W&M course. Has the following attributes:
 
