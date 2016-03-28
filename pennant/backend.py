@@ -6,6 +6,7 @@ import json
 import sqlite3
 import requests
 import re
+from glob import glob
 
 from textwrap import dedent, wrap
 
@@ -146,9 +147,9 @@ class Course:
 
         try:
             to_ht = lambda x: time.strftime("%I:%M %p", x)
-            start, end = self.times
+            start, end = self.times[0:2]
             meeting += " from {} to {}".format(to_ht(start), to_ht(end))
-        except IndexError:
+        except (ValueError, SyntaxError): # not enough values to unpack
             meeting += " times TBA"
 
         return "\n  ".join([
@@ -245,8 +246,9 @@ class Course:
 def numeric(alphanumeric):
     return int(''.join(c for c in alphanumeric if c.isdigit()))
 
-def scrapeCourselist(termCode="201710") -> str:
-    '''Outputs raw html scraped from <courselist.wm.edu>.'''
+def scrapeTable(termCode="201710") -> str:
+    '''strapeTable scrapes the current html course table from
+    <courselist.wm.edu>.'''
 
     url = "https://courselist.wm.edu/courselist/courseinfo/searchresults"
     payload = {
@@ -263,19 +265,17 @@ def scrapeCourselist(termCode="201710") -> str:
     response = response.replace("\r", "\n")
     return response
 
-def writeCourselist(filename: str):
-    '''Writes raw html scraped from <courselist.wm.edu> to given file.'''
+def tableToCourses(htmlText: str) -> list():
+    '''tableToCourses produces a list of Course instances from an html course
+    table scraped from <courselist.wm.edu>.'''
 
-    response = scrapeCourselist()
-    with open(filename, 'w') as f:
-        f.write(response)
+    crnPattern = r'<td.*>\s*<a[^>]*>([^<]+)</a>\s*</td>\s*'
+    dataPattern = r'<td[^>]*>([^<]+)</td>\s*'
+    fullPattern = re.compile(crnPattern + dataPattern * 11)
+    results = re.findall(fullPattern, htmlText)
 
-def parseHtml(htmlText: str) -> list(tuple()):
     '''
-    Input is html scraped from <courselist.wm.edu>.
-    Output is a list of courses in tuple form.
-
-    Tuples have the following format:
+    result tuples have have the following format:
     0: CRN (Banner's "course registration number")
     1: department, level, and section
     2: attributes
@@ -290,21 +290,6 @@ def parseHtml(htmlText: str) -> list(tuple()):
     11: "OPEN" or "CLOSED"
     '''
 
-    crnPattern = r'<td.*>\s*<a[^>]*>([^<]+)</a>\s*</td>\s*'
-    dataPattern = r'<td[^>]*>([^<]+)</td>\s*'
-    fullPattern = re.compile(crnPattern + dataPattern * 11)
-    return re.findall(fullPattern, htmlText)
-
-def parseToCourseList(results: list(tuple())) -> list():
-    '''
-    Input is a list of tuples described in parseHtml().
-    Output is a list of Course instances.
-    '''
-
-    openMap = {
-        "OPEN": True,
-        "CLOSED": False}
-
     weekdayMap = {
         'M': "Monday",
         'T': "Tuesday",
@@ -315,7 +300,7 @@ def parseToCourseList(results: list(tuple())) -> list():
     masterCourses = []
 
     for result in results:
-        topn = openMap[result[11]]
+        topn = result[11] == "OPEN"
         tcrn = result[0]
 
         titleData = result[1].split(" ")
@@ -381,11 +366,35 @@ def parseToCourseList(results: list(tuple())) -> list():
 
     return masterCourses
 
-if __name__ == "__main__":
-    courses = autoCourseList(True)
-    astroCourses = list(filter(lambda x: x.department == "PHYS",courses))
-    cDict = {}
-    crns = []
+def latestTableToCourses(directory='.'):
+    '''latestTableToCourses reads in the latest-dated html course table from
+    the current directory and turns it into a list of Courses, raising
+    FileNotFoundError if no html course table has been saved.'''
 
-    for i in astroCourses:
-        print(str(i.crn) + ' ' + i.title + ' ' + str(i.times))
+    try:
+        latest = max(glob(directory + "/courses_*.html"))
+        print("Using {}...".format(latest))
+        with open(latest) as f:
+            return tableToCourses(f.read())
+    except ValueError:
+        m = "No recent coursedump found!"
+        print(m)
+        raise FileNotFoundError(m)
+
+def scrapeTableToFile(filename=None):
+    '''scrapeTableToFile scrapes the latest html course table from
+    <courselist.wm.edu>, saves it to a file, and returns it to the caller.'''
+
+    if not filename:
+        filename = "courses_{}.html".format(int(time.time()))
+
+    print("Retrieving course list...")
+    response = scrapeTable()
+
+    print("Saving to {}...".format(filename))
+    with open(filename, 'w') as f:
+        f.write(response)
+
+    print("Done")
+
+    return response
