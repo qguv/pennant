@@ -139,44 +139,46 @@ class Course:
             self.crn)
 
     def fullinfo(self):
-        try:
-            humanTime = time.strftime("%I:%M %p", self.times[0]) \
-                + " to " + time.strftime("%I:%M %p", self.times[1])
-        except IndexError:
-            humanTime = ''
+        if self.days:
+            meeting = ", ".join(self.days)
+        else:
+            meeting = "meeting"
 
-        newline = "\n  "
-        pattern =  "{} w/ Prof. {}"
-        pattern += newline
-        pattern += "{} ({} {}-{}, CRN {}); {} seat{} left"
-        pattern += newline
-        pattern += "{}{}{}"
-        pattern += newline
-        pattern += "fulfills {}"
-        pattern += newline
-        pattern += "{} credit{}{}{}\n"
-        return pattern.format(
-            self.title,
-            self.professorLast,
-        # newline
-            "OPEN" if self.isOpen else "CLOSED",
-            self.department,
-            self.level,
-            self.section,
-            self.crn,
-            self.seats if self.seats != 0 else "no",
-            's' if self.seats != 1 else '',
-        # newline
-            ", ".join(self.days) if self.days else "meeting",
-            " from " if humanTime else " times TBA",
-            humanTime,
-        # newline
-            "GER " + ", ".join(sorted(self.gers)) if self.gers else "no GERs",
-        # newline
-            self.creditHours,
-            's' if self.creditHours != '1' else '',
-            ": " if self.attributes else '',
-            ", ".join(sorted(self.attributes)) if self.attributes else '')
+        try:
+            to_ht = lambda x: time.strftime("%I:%M %p", x)
+            start, end = self.times
+            meeting += " from {} to {}".format(to_ht(start), to_ht(end))
+        except IndexError:
+            meeting += " times TBA"
+
+        return "\n  ".join([
+
+            "{} {}-{}: {} w/ Prof. {}".format(
+                self.department,
+                self.level,
+                self.section,
+                self.title,
+                self.professorLast,
+            ),
+
+            meeting,
+
+            "{}: {} spot{} left (space for {})".format(
+                "OPEN" if self.isOpen else "CLOSED",
+                self.seats if self.seats != 0 else "no",
+                's' if self.seats != 1 else '',
+                self.currentE + self.seats,
+            ),
+
+            "{} credit{}, fulfills {}".format(
+                self.creditHours,
+                's' if self.creditHours != '1' else '',
+                ("GER " + ", ".join(sorted(self.gers)) if self.gers else "no GERs"),
+            ),
+
+            "CRN {}".format(self.crn),
+
+        ]) + '\n'
 
     def toDict(self):
         timeTuple = self.times
