@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 # vim:si:et:ts=4:sw=4
 
-import time
+import html
 import json
-import sqlite3
-import requests
 import re
-from glob import glob
-
 from textwrap import dedent, wrap
+import requests
+import time
 
 def numeric(alphanumeric):
     return int(''.join(c for c in alphanumeric if c.isdigit()))
@@ -30,6 +28,9 @@ def is_undergrad(course):
 
 def sort_by_scarcity(courses, reverse=False):
     return sorted(courses, key=lambda c: c.seats, reverse=reverse)
+
+def collapse_spaces(s):
+    return ' '.join(s.split())
 
 class Course:
     '''An object representing a W&M course. Has the following attributes:
@@ -243,37 +244,85 @@ class Course:
         )))
         return "{}\n{}\n\n{}".format(header, '\n'.join(body_lines), footer)
 
-def numeric(alphanumeric):
-    return int(''.join(c for c in alphanumeric if c.isdigit()))
+    @classmethod
+    def from_tuple(cls, c: tuple) -> 'Course':
+        '''
+        Input is a list of tuples described in parse_department().
+        Output is a list of Course instances.
+        '''
 
-def scrapeTable(termCode="201710") -> str:
-    '''strapeTable scrapes the current html course table from
-    <courselist.wm.edu>.'''
+        weekdays = {
+            'M': "Monday",
+            'T': "Tuesday",
+            'W': "Wednesday",
+            'R': "Thursday",
+            'F': "Friday",
+            'S': "Saturday",
+            'U': "Sunday"}
 
-    url = "https://courselist.wm.edu/courselist/courseinfo/searchresults"
-    payload = {
-        "term_code": termCode,  # Defaults to Fall 2016
-        "term_subj": "0",       # ALL
-        "attr": "0",            # ALL
-        "attr2": "0",           # ALL
-        "levl": "0",            # ALL
-        "status": "0",          # ALL
-        "ptrm": "0",            # ALL
-    }
-    r = requests.post(url, payload)
-    response = r.text
-    response = response.replace("\r", "\n")
-    return response
+        dept, level, section = c[1].split(" ")
 
-def tableToCourses(htmlText: str) -> list():
-    '''tableToCourses produces a list of Course instances from an html course
-    table scraped from <courselist.wm.edu>.'''
+        tattrs = set()
+        tgers = set()
+        if c[2] != '':
+            attribs = c[2].split(", ")
+            for attrib in attribs:
+                if "GE" in attrib:
+                    tgers.add(attrib[2:])
+                elif "&nbsp;" in attrib:
+                    continue
+                elif attrib in ('.'):
+                    continue
+                else:
+                    tattrs.add(attrib)
 
-    crnPattern = r'<td.*>\s*<a[^>]*>([^<]+)</a>\s*</td>\s*'
-    dataPattern = r'<td[^>]*>([^<]+)</td>\s*'
-    fullPattern = re.compile(crnPattern + dataPattern * 11)
-    results = re.findall(fullPattern, htmlText)
+        if c[7] != '' and '-' in c[7]:
+            ttime = c[7]
+        else:
+            ttime = tuple()
 
+        tprojectede = int(c[8])
+        tcurrente = int(c[9])
+        tseats = int(c[10].strip('*'))
+
+        return cls(isOpen='OPEN' == c[11],
+                   crn=c[0],
+                   department=dept,
+                   level=level,
+                   section=section,
+                   title=c[3],
+                   professor=c[4],
+                   creditHours=c[5],
+                   attributes=tattrs,
+                   gers=tgers,
+                   days=[weekdays[d] for d in c[6]],
+
+                   times=ttime,
+                   projectedE=tprojectede,
+                   currentE=tcurrente,
+                   seats=tseats)
+
+def get_departments() -> [str]:
+
+    url = "https://courselist.wm.edu/courselist/"
+    r = requests.post(url)
+    r.raise_for_status()
+    src = r.text
+
+    begin = src.find('id="term_subj"')
+    end = src.find('</select>', begin)
+    region = src[begin:end]
+
+    course_pattern = re.compile(r'<option value="([^"]+?)" >([^<]+?)</option>')
+    matches = course_pattern.finditer(region)
+
+    # ignore the first match, the 'ALL' default
+    next(matches)
+
+    return dict((html.unescape(group) for group in match.groups())
+                 for match in matches)
+
+def scrape_department(department, term_code="201720") -> 'html':
     '''
     result tuples have have the following format:
     0: CRN (Banner's "course registration number")
@@ -290,111 +339,27 @@ def tableToCourses(htmlText: str) -> list():
     11: "OPEN" or "CLOSED"
     '''
 
-    weekdayMap = {
-        'M': "Monday",
-        'T': "Tuesday",
-        'W': "Wednesday",
-        'R': "Thursday",
-        'F': "Friday"}
+    # create the request
+    url = "https://courselist.wm.edu/courselist/courseinfo/searchresults"
+    payload = {
+        "term_code": term_code, # Defaults to Spring 2017
+        "term_subj": department,
+        "attr": "0",            # ALL
+        "attr2": "0",           # ALL
+        "levl": "0",            # ALL
+        "status": "0",          # ALL
+        "ptrm": "0",            # ALL
+    }
 
-    masterCourses = []
+    r = requests.post(url, payload)
+    r.raise_for_status()
+    src = r.text.replace("\r", "\n")
 
-    for result in results:
-        topn = result[11] == "OPEN"
-        tcrn = result[0]
+    crn = r'<td.*>\s*<a[^>]*>([^<]+)</a>\s*</td>\s*'
+    course_datum = r'<td[^>]*>([^<]+)</td>\s*'
+    pattern = re.compile(crn + course_datum * 11)
+    dirty = pattern.findall(src)
+    clean = [[collapse_spaces(html.unencode(datum)) for datum in course]
+             for course in dirty]
 
-        titleData = result[1].split(" ")
-        tdepart = titleData[0]
-        tlevel = titleData[1]
-        tsection = titleData[2]
-
-        ttitle = result[3]
-        ttitle = ttitle.replace("&amp;", '&')
-        ttitle = ttitle.replace("&#39;", '\'')
-
-        tprof = result[4]
-        tcredit = result[5]
-
-        tattrs = set()
-        tgers = set()
-        if result[2] != '':
-            attribs = result[2].split(", ")
-            for attrib in attribs:
-                if "GE" in attrib:
-                    tgers.add(attrib[2:])
-                elif "&nbsp;" in attrib:
-                    continue
-                elif attrib in ('.'):
-                    continue
-                else:
-                    tattrs.add(attrib)
-
-        days = result[6]
-        tdays = list()
-        if days != '':
-            for d in days:
-                if d in "MTWRF":
-                    tdays.append(weekdayMap[d])
-
-        if result[7] != '' and '-' in result[7]:
-            ttime = result[7]
-        else:
-            ttime = tuple()
-
-        tprojectede = int(result[8])
-        tcurrente = int(result[9])
-        tseats = int(result[10].strip('*'))
-
-        someCourse = Course(
-            isOpen=topn,
-            crn=tcrn,
-            department=tdepart,
-            level=tlevel,
-            section=tsection,
-            title=ttitle,
-            professor=tprof,
-            creditHours=tcredit,
-            attributes=tattrs,
-            gers=tgers,
-            days=tdays,
-            times=ttime,
-            projectedE=tprojectede,
-            currentE=tcurrente,
-            seats=tseats)
-
-        masterCourses.append(someCourse)
-
-    return masterCourses
-
-def latestTableToCourses(directory='.'):
-    '''latestTableToCourses reads in the latest-dated html course table from
-    the current directory and turns it into a list of Courses, raising
-    FileNotFoundError if no html course table has been saved.'''
-
-    try:
-        latest = max(glob(directory + "/courses_*.html"))
-        print("Using {}...".format(latest))
-        with open(latest) as f:
-            return tableToCourses(f.read())
-    except ValueError:
-        m = "No recent coursedump found!"
-        print(m)
-        raise FileNotFoundError(m)
-
-def scrapeTableToFile(filename=None):
-    '''scrapeTableToFile scrapes the latest html course table from
-    <courselist.wm.edu>, saves it to a file, and returns it to the caller.'''
-
-    if not filename:
-        filename = "courses_{}.html".format(int(time.time()))
-
-    print("Retrieving course list...")
-    response = scrapeTable()
-
-    print("Saving to {}...".format(filename))
-    with open(filename, 'w') as f:
-        f.write(response)
-
-    print("Done")
-
-    return response
+    return clean
