@@ -359,7 +359,7 @@ def scrape_department(department, term_code="201720") -> 'html':
     course_datum = r'<td[^>]*>([^<]+)</td>\s*'
     pattern = re.compile(crn + course_datum * 11)
     dirty = pattern.findall(src)
-    clean = [[collapse_spaces(html.unencode(datum)) for datum in course]
+    clean = [[collapse_spaces(html.unescape(datum)) for datum in course]
              for course in dirty]
 
     return clean
